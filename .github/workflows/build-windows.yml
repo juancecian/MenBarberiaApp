@@ -1,0 +1,64 @@
+name: Build Windows Release
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Permite ejecutar manualmente
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+        
+    - name: Enable Windows desktop
+      run: flutter config --enable-windows-desktop
+      
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Generate launcher icons
+      run: flutter pub run flutter_launcher_icons:main
+      
+    - name: Build Windows app
+      run: flutter build windows --release
+      
+    - name: Create Windows installer
+      run: |
+        # Crear directorio de distribución
+        mkdir -p dist/windows
+        
+        # Copiar archivos de la aplicación
+        cp -r build/windows/x64/runner/Release/* dist/windows/
+        
+        # Crear archivo ZIP para distribución
+        cd dist/windows
+        7z a -tzip ../../Men_Barberia_Windows_v1.0.0.zip *
+        cd ../..
+      
+    - name: Upload Windows build
+      uses: actions/upload-artifact@v4
+      with:
+        name: men-barberia-windows
+        path: |
+          Men_Barberia_Windows_v1.0.0.zip
+          build/windows/x64/runner/Release/
+        retention-days: 30
+        
+    - name: Create Release (if tag)
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: Men_Barberia_Windows_v1.0.0.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
