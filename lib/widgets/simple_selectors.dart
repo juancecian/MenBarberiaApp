@@ -39,13 +39,22 @@ class _SimpleDateSelectorState extends State<SimpleDateSelector> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
+            colorScheme: ColorScheme.dark(
               primary: AppTheme.accentColor,
               onPrimary: Colors.black,
-              surface: AppTheme.surfaceColor,
+              surface: AppTheme.primaryColor,
               onSurface: AppTheme.textPrimary,
+              background: AppTheme.backgroundColor,
+              onBackground: AppTheme.textPrimary,
+              secondary: AppTheme.secondaryColor,
+              onSecondary: AppTheme.textPrimary,
             ),
-            dialogBackgroundColor: AppTheme.surfaceColor,
+            dialogBackgroundColor: AppTheme.primaryColor,
+            textTheme: Theme.of(context).textTheme.copyWith(
+              headlineMedium: TextStyle(color: AppTheme.textPrimary),
+              bodyLarge: TextStyle(color: AppTheme.textPrimary),
+              bodyMedium: TextStyle(color: AppTheme.textPrimary),
+            ),
           ),
           child: child!,
         );
@@ -81,52 +90,43 @@ class _SimpleDateSelectorState extends State<SimpleDateSelector> {
           GestureDetector(
             onTap: _selectDate,
             child: Container(
-              height: 56,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppTheme.secondaryColor.withOpacity(0.3),
-                  width: 1.0,
+                  color: _hasError 
+                    ? AppTheme.errorColor
+                    : (_isFocused 
+                      ? AppTheme.accentColor
+                      : AppTheme.secondaryColor.withOpacity(0.3)),
+                  width: _hasError || _isFocused ? 2 : 1,
                 ),
-                color: _hasError
-                  ? AppTheme.errorColor.withOpacity(0.1)
-                  : AppTheme.surfaceColor,
+                color: AppTheme.primaryColor,
               ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               child: Row(
                 children: [
-                  if (widget.icon != null)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16, right: 12),
-                      child: Icon(
-                        widget.icon,
-                        color: AppTheme.textSecondary.withOpacity(0.7),
-                        size: 20,
-                      ),
+                  if (widget.icon != null) ...[
+                    Icon(
+                      widget.icon,
+                      color: AppTheme.textSecondary,
+                      size: 20,
                     ),
+                    const SizedBox(width: 12),
+                  ],
                   Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        left: widget.icon != null ? 0 : 16,
-                        top: 16,
-                        bottom: 16,
-                      ),
-                      child: Text(
-                        dateFormat.format(widget.selectedDate),
-                        style: const TextStyle(
-                          color: AppTheme.textPrimary,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                        ),
+                    child: Text(
+                      dateFormat.format(widget.selectedDate),
+                      style: const TextStyle(
+                        color: AppTheme.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16, left: 12),
-                    child: Icon(
-                      Icons.calendar_today,
-                      color: AppTheme.textSecondary.withOpacity(0.7),
-                      size: 20,
-                    ),
+                  Icon(
+                    Icons.calendar_today,
+                    color: AppTheme.textSecondary,
+                    size: 20,
                   ),
                 ],
               ),
@@ -192,13 +192,22 @@ class _SimpleTimeSelectorState extends State<SimpleTimeSelector> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
+            colorScheme: ColorScheme.dark(
               primary: AppTheme.accentColor,
               onPrimary: Colors.black,
-              surface: AppTheme.surfaceColor,
+              surface: AppTheme.primaryColor,
               onSurface: AppTheme.textPrimary,
+              background: AppTheme.backgroundColor,
+              onBackground: AppTheme.textPrimary,
+              secondary: AppTheme.secondaryColor,
+              onSecondary: AppTheme.textPrimary,
             ),
-            dialogBackgroundColor: AppTheme.surfaceColor,
+            dialogBackgroundColor: AppTheme.primaryColor,
+            textTheme: Theme.of(context).textTheme.copyWith(
+              headlineMedium: TextStyle(color: AppTheme.textPrimary),
+              bodyLarge: TextStyle(color: AppTheme.textPrimary),
+              bodyMedium: TextStyle(color: AppTheme.textPrimary),
+            ),
           ),
           child: child!,
         );
@@ -233,52 +242,43 @@ class _SimpleTimeSelectorState extends State<SimpleTimeSelector> {
           GestureDetector(
             onTap: _selectTime,
             child: Container(
-              height: 56,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppTheme.secondaryColor.withOpacity(0.3),
-                  width: 1.0,
+                  color: _hasError 
+                    ? AppTheme.errorColor
+                    : (_isFocused 
+                      ? AppTheme.accentColor
+                      : AppTheme.secondaryColor.withOpacity(0.3)),
+                  width: _hasError || _isFocused ? 2 : 1,
                 ),
-                color: _hasError
-                  ? AppTheme.errorColor.withOpacity(0.1)
-                  : AppTheme.surfaceColor,
+                color: AppTheme.primaryColor,
               ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               child: Row(
                 children: [
-                  if (widget.icon != null)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16, right: 12),
-                      child: Icon(
-                        widget.icon,
-                        color: AppTheme.textSecondary.withOpacity(0.7),
-                        size: 20,
-                      ),
+                  if (widget.icon != null) ...[
+                    Icon(
+                      widget.icon,
+                      color: AppTheme.textSecondary,
+                      size: 20,
                     ),
+                    const SizedBox(width: 12),
+                  ],
                   Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        left: widget.icon != null ? 0 : 16,
-                        top: 16,
-                        bottom: 16,
-                      ),
-                      child: Text(
-                        widget.selectedTime,
-                        style: const TextStyle(
-                          color: AppTheme.textPrimary,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                        ),
+                    child: Text(
+                      widget.selectedTime,
+                      style: const TextStyle(
+                        color: AppTheme.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16, left: 12),
-                    child: Icon(
-                      Icons.access_time,
-                      color: AppTheme.textSecondary.withOpacity(0.7),
-                      size: 20,
-                    ),
+                  Icon(
+                    Icons.access_time,
+                    color: AppTheme.textSecondary,
+                    size: 20,
                   ),
                 ],
               ),

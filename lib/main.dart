@@ -5,6 +5,7 @@ import 'core/theme/app_theme.dart';
 import 'core/services/supabase_service.dart';
 import 'providers/barbero_provider.dart';
 import 'providers/servicio_provider.dart';
+import 'providers/cliente_provider.dart';
 import 'providers/navigation_provider.dart';
 import 'providers/sync_provider.dart';
 import 'screens/splash_screen.dart';
@@ -44,6 +45,7 @@ class MenBarberiaApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
         ChangeNotifierProvider(create: (_) => ServicioProvider()),
         ChangeNotifierProvider(create: (_) => BarberoProvider()),
+        ChangeNotifierProvider(create: (_) => ClienteProvider()),
         ChangeNotifierProvider(create: (_) => SyncProvider()),
       ],
       child: MaterialApp(

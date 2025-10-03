@@ -6,10 +6,11 @@ import '../providers/servicio_provider.dart';
 import '../providers/barbero_provider.dart';
 import '../models/servicio.dart';
 import '../core/theme/app_theme.dart';
+import '../core/utils/number_formatter.dart';
 import '../widgets/add_servicio_modal.dart';
-import '../widgets/desktop_button.dart';
 import '../widgets/sync_status_widget.dart';
 import '../widgets/date_filter_widget.dart';
+import '../widgets/desktop_button.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -61,13 +62,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppTheme.primaryColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Row(
         children: [
@@ -131,7 +125,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Expanded(
               child: _MetricCard(
                 title: 'Ingresos del Día',
-                value: '\$${(metrics['ingresosTotales'] ?? 0).toStringAsFixed(2)}',
+                value: '\$${NumberFormatter.formatTotal(metrics['ingresosTotales'] ?? 0)}',
                 icon: Icons.attach_money,
                 color: AppTheme.successColor,
               ),
@@ -658,7 +652,7 @@ class _ServiceCardState extends State<_ServiceCard>
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '\$${widget.servicio.total.toStringAsFixed(2)}',
+                    '\$${NumberFormatter.formatServicePrice(widget.servicio.precioServicio, widget.servicio.propina)}',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppTheme.successColor,

@@ -6,7 +6,9 @@ import '../providers/barbero_provider.dart';
 import '../models/servicio_model.dart';
 import '../models/barbero.dart';
 import '../core/theme/app_theme.dart';
+import '../core/utils/number_formatter.dart';
 import '../core/services/supabase_service.dart';
+import '../widgets/desktop_button.dart';
 
 class HistorialScreen extends StatefulWidget {
   const HistorialScreen({super.key});
@@ -169,16 +171,11 @@ class _HistorialScreenState extends State<HistorialScreen> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  ElevatedButton.icon(
+                  DesktopButton(
                     onPressed: _selectDate,
-                    icon: const Icon(Icons.calendar_today, size: 16),
-                    label: const Text('Cambiar Fecha'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.accentColor,
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      textStyle: const TextStyle(fontSize: 14),
-                    ),
+                    icon: const Icon(Icons.calendar_today),
+                    label: 'Cambiar Fecha',
+                    isPrimary: true,
                   ),
                 ],
               ),
@@ -235,7 +232,7 @@ class _HistorialScreenState extends State<HistorialScreen> {
           flex: 1,
           child: _MetricCard(
             title: 'Total Recaudado',
-            value: '\$${metrics['totalRecaudado'].toStringAsFixed(2)}',
+            value: '\$${NumberFormatter.formatTotal(metrics['totalRecaudado'])}',
             icon: Icons.attach_money,
             color: AppTheme.successColor,
           ),
@@ -605,7 +602,7 @@ class _BarberoAccordionListState extends State<_BarberoAccordionList> {
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
-                              '\$${serviciosBarbero.fold(0.0, (sum, s) => sum + s.price).toStringAsFixed(0)}',
+                              '\$${NumberFormatter.formatTotal(serviciosBarbero.fold(0.0, (sum, s) => sum + s.price))}',
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: AppTheme.successColor,
                                 fontWeight: FontWeight.bold,
@@ -720,7 +717,7 @@ class _BarberoAccordionListState extends State<_BarberoAccordionList> {
                                               ),
                                               // Precio
                                               Text(
-                                                '\$${servicio.price.toStringAsFixed(0)}',
+                                                '\$${NumberFormatter.formatServicePrice(servicio.price, servicio.perquisiste ?? 0)}',
                                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                                   fontWeight: FontWeight.bold,
                                                   color: AppTheme.successColor,
@@ -905,7 +902,7 @@ class _ServicioCardState extends State<_ServicioCard>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '\$${widget.servicio.price.toStringAsFixed(2)}',
+                      '\$${NumberFormatter.formatServicePrice(widget.servicio.price, widget.servicio.perquisiste ?? 0)}',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppTheme.successColor,

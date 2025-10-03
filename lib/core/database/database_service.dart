@@ -2,11 +2,12 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../../models/barbero.dart';
 import '../../models/servicio.dart';
+import '../../models/cliente.dart';
 
 class DatabaseService {
   static Database? _database;
   static const String _databaseName = 'men_barberia.db';
-  static const int _databaseVersion = 2;
+  static const int _databaseVersion = 4;
 
   Future<Database> get database async {
     _database ??= await _initDatabase();
@@ -40,6 +41,18 @@ class DatabaseService {
       )
     ''');
 
+    // Tabla de clientes
+    await db.execute('''
+      CREATE TABLE clients(
+        id TEXT PRIMARY KEY,
+        nombre TEXT NOT NULL,
+        telefono TEXT,
+        ultima_asistencia TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+
     // Tabla de servicios
     await db.execute('''
       CREATE TABLE servicios(
@@ -68,6 +81,24 @@ class DatabaseService {
       // Agregar nuevos campos a la tabla servicios
       await db.execute('ALTER TABLE servicios ADD COLUMN cliente_telefono TEXT');
       await db.execute('ALTER TABLE servicios ADD COLUMN tipo_pago INTEGER NOT NULL DEFAULT 1');
+    }
+    
+    if (oldVersion < 3) {
+      // Crear tabla de clientes
+      await db.execute('''
+        CREATE TABLE clients(
+          id TEXT PRIMARY KEY,
+          nombre TEXT NOT NULL,
+          telefono TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      ''');
+    }
+    
+    if (oldVersion < 4) {
+      // Agregar campo ultima_asistencia a la tabla clients
+      await db.execute('ALTER TABLE clients ADD COLUMN ultima_asistencia TEXT');
     }
   }
 
@@ -294,5 +325,115 @@ class DatabaseService {
     );
 
     return maps.map((map) => map['cliente_nombre'] as String).toList();
+  }
+
+  // CRUD Clientes
+  Future<List<Cliente>> getClientes() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'clients',
+      orderBy: 'nombre ASC',
+    );
+
+    return List.generate(maps.length, (i) => Cliente.fromMap(maps[i]));
+  }
+
+  Future<List<Cliente>> buscarClientesPorNombre(String query) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'clients',
+      where: 'nombre LIKE ?',
+      whereArgs: ['%$query%'],
+      orderBy: 'nombre ASC',
+      limit: 10,
+    );
+
+    return List.generate(maps.length, (i) => Cliente.fromMap(maps[i]));
+  }
+
+  Future<Cliente?> getClientePorNombre(String nombre) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'clients',
+      where: 'nombre = ?',
+      whereArgs: [nombre],
+      limit: 1,
+    );
+
+    if (maps.isNotEmpty) {
+      return Cliente.fromMap(maps.first);
+    }
+    return null;
+  }
+
+  Future<void> insertCliente(Cliente cliente) async {
+    final db = await database;
+    await db.insert('clients', cliente.toMap());
+  }
+
+  Future<void> updateCliente(Cliente cliente) async {
+    final db = await database;
+    await db.update(
+      'clients',
+      cliente.toMap(),
+      where: 'id = ?',
+      whereArgs: [cliente.id],
+    );
+  }
+
+  Future<void> deleteCliente(String id) async {
+    final db = await database;
+    await db.delete(
+      'clients',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// Crea o actualiza un cliente basado en nombre, teléfono y fecha de asistencia
+  /// Retorna el cliente existente o el nuevo cliente creado
+  Future<Cliente> upsertCliente(String nombre, String? telefono, DateTime fechaAsistencia) async {
+    // Buscar cliente existente por nombre
+    Cliente? clienteExistente = await getClientePorNombre(nombre);
+    
+    if (clienteExistente != null) {
+      // Siempre actualizar la fecha de asistencia y el teléfono si es diferente
+      bool needsUpdate = false;
+      String? nuevoTelefono = clienteExistente.telefono;
+      
+      // Actualizar teléfono si es diferente y no está vacío
+      if (telefono != null && 
+          telefono.isNotEmpty && 
+          clienteExistente.telefono != telefono) {
+        nuevoTelefono = telefono;
+        needsUpdate = true;
+      }
+      
+      // Siempre actualizar la fecha de asistencia
+      needsUpdate = true;
+      
+      if (needsUpdate) {
+        final clienteActualizado = clienteExistente.copyWith(
+          telefono: nuevoTelefono,
+          ultimaAsistencia: fechaAsistencia,
+          updatedAt: DateTime.now(),
+        );
+        await updateCliente(clienteActualizado);
+        return clienteActualizado;
+      }
+      return clienteExistente;
+    } else {
+      // Crear nuevo cliente
+      final nuevoCliente = Cliente(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        nombre: nombre,
+        telefono: telefono,
+        ultimaAsistencia: fechaAsistencia,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      await insertCliente(nuevoCliente);
+      return nuevoCliente;
+    }
   }
 }

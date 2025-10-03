@@ -4,11 +4,15 @@ import 'package:intl/intl.dart';
 
 import '../providers/servicio_provider.dart';
 import '../providers/barbero_provider.dart';
+import '../providers/cliente_provider.dart';
 import '../models/servicio.dart';
+import '../models/cliente.dart';
 import '../core/theme/app_theme.dart';
+import '../core/utils/currency_input_formatter.dart';
 import 'simple_input.dart';
 import 'simple_selectors.dart';
 import 'desktop_button.dart';
+import 'client_autocomplete_field.dart';
 
 class AddServicioModal extends StatefulWidget {
   const AddServicioModal({super.key});
@@ -34,6 +38,7 @@ class _AddServicioModalState extends State<AddServicioModal> {
   String? _barberoSeleccionado;
   String? _tipoServicioSeleccionado;
   int _tipoPagoSeleccionado = 1; // 1 = Efectivo por defecto
+  Cliente? _clienteSeleccionado;
 
   @override
   void initState() {
@@ -180,32 +185,82 @@ class _AddServicioModalState extends State<AddServicioModal> {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: SimpleInput(
-                                controller: _clienteController,
-                                focusNode: _clienteFocusNode,
-                                placeholder: 'Nombre del cliente',
-                                icon: Icons.person_outline,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'El nombre del cliente es requerido';
-                                  }
-                                  return null;
-                                },
+                        IntrinsicHeight(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ClientAutocompleteField(
+                                      controller: _clienteController,
+                                      focusNode: _clienteFocusNode,
+                                      placeholder: 'Nombre del cliente',
+                                      icon: Icons.person_outline,
+                                      onClienteSelected: (cliente) {
+                                        setState(() {
+                                          _clienteSeleccionado = cliente;
+                                          if (cliente != null && cliente.telefono != null) {
+                                            _telefonoController.text = cliente.telefono!;
+                                          }
+                                        });
+                                      },
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'El nombre del cliente es requerido';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                    
+                                    // Mostrar información de última visita si hay cliente seleccionado
+                                    if (_clienteSeleccionado != null && _clienteSeleccionado!.ultimaAsistencia != null)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 8, left: 16),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.schedule,
+                                              size: 16,
+                                              color: AppTheme.textSecondary,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Flexible(
+                                              child: Text(
+                                                'Última visita: ${_formatearTiempoTranscurrido(_clienteSeleccionado!.ultimaAsistencia!)}',
+                                                style: TextStyle(
+                                                  color: AppTheme.textSecondary,
+                                                  fontSize: 13,
+                                                  fontStyle: FontStyle.italic,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 20),
-                            Expanded(
-                              child: SimpleInput(
-                                controller: _telefonoController,
-                                placeholder: 'Teléfono (opcional)',
-                                icon: Icons.phone_outlined,
-                                keyboardType: TextInputType.phone,
+                              const SizedBox(width: 20),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SimpleInput(
+                                      controller: _telefonoController,
+                                      placeholder: 'Teléfono (opcional)',
+                                      icon: Icons.phone_outlined,
+                                      keyboardType: TextInputType.phone,
+                                    ),
+                                    // Espaciador invisible para mantener la altura consistente
+                                    if (_clienteSeleccionado != null && _clienteSeleccionado!.ultimaAsistencia != null)
+                                      const SizedBox(height: 29), // Altura aproximada del texto de última visita
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         
                         const SizedBox(height: 32),
@@ -279,11 +334,13 @@ class _AddServicioModalState extends State<AddServicioModal> {
                                 placeholder: 'Precio del servicio',
                                 icon: Icons.attach_money,
                                 keyboardType: TextInputType.number,
+                                inputFormatters: [CurrencyInputFormatter()],
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
                                     return 'El precio es requerido';
                                   }
-                                  if (double.tryParse(value) == null) {
+                                  final numericValue = CurrencyInputFormatter.getNumericValue(value);
+                                  if (numericValue <= 0) {
                                     return 'Ingresa un precio válido';
                                   }
                                   return null;
@@ -379,6 +436,7 @@ class _AddServicioModalState extends State<AddServicioModal> {
                                 placeholder: 'Propina (opcional)',
                                 icon: Icons.attach_money,
                                 keyboardType: TextInputType.number,
+                                inputFormatters: [CurrencyInputFormatter()],
                               ),
                             ),
                           ],
@@ -556,31 +614,29 @@ class _AddServicioModalState extends State<AddServicioModal> {
       // Show a brief message for dropdown since we can't focus it
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Por favor selecciona un tipo de servicio'),
+          content: Text('Selecciona un tipo de servicio'),
           backgroundColor: AppTheme.errorColor,
-          duration: Duration(seconds: 2),
         ),
       );
       return;
     }
     
-    if (_precioController.text.trim().isEmpty || double.tryParse(_precioController.text) == null) {
-      _precioFocusNode.requestFocus();
-      return;
-    }
-
     if (_barberoSeleccionado == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Por favor selecciona un barbero'),
+          content: Text('Selecciona un barbero'),
           backgroundColor: AppTheme.errorColor,
-          duration: Duration(seconds: 2),
         ),
       );
       return;
     }
+    
+    final precioValue = CurrencyInputFormatter.getNumericValue(_precioController.text);
+    if (_precioController.text.trim().isEmpty || precioValue <= 0) {
+      _precioFocusNode.requestFocus();
+      return;
+    }
 
-    // Crear el objeto Servicio
     // Crear DateTime combinando fecha y hora seleccionadas
     final fechaHora = DateTime(
       _fechaSeleccionada.year,
@@ -590,16 +646,32 @@ class _AddServicioModalState extends State<AddServicioModal> {
       int.parse(_horaSeleccionada.split(':')[1]),
     );
 
+    // Crear o actualizar cliente en la base de datos
+    final clienteProvider = Provider.of<ClienteProvider>(context, listen: false);
+    final cliente = await clienteProvider.upsertCliente(
+      _clienteController.text.trim(),
+      _telefonoController.text.trim().isEmpty ? null : _telefonoController.text.trim(),
+      fechaHora, // Pasar la fecha del servicio como fecha de asistencia
+    );
+
+    if (cliente == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al guardar cliente: ${clienteProvider.error ?? "Error desconocido"}'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+      return;
+    }
+
     final servicio = Servicio(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       barberoId: _barberoSeleccionado!,
-      clienteNombre: _clienteController.text.trim(),
-      clienteTelefono: _telefonoController.text.trim().isEmpty 
-          ? null 
-          : _telefonoController.text.trim(),
+      clienteNombre: cliente.nombre,
+      clienteTelefono: cliente.telefono,
       tipoServicio: _getTipoServicioId(_tipoServicioSeleccionado!),
-      precioServicio: double.tryParse(_precioController.text) ?? 0,
-      propina: double.tryParse(_propinaController.text) ?? 0,
+      precioServicio: CurrencyInputFormatter.getNumericValue(_precioController.text),
+      propina: CurrencyInputFormatter.getNumericValue(_propinaController.text),
       tipoPago: _tipoPagoSeleccionado,
       registrationDate: fechaHora,
     );
@@ -651,6 +723,31 @@ class _AddServicioModalState extends State<AddServicioModal> {
         return 4;
       default:
         return 1;
+    }
+  }
+
+  String _formatearTiempoTranscurrido(DateTime ultimaAsistencia) {
+    final ahora = DateTime.now();
+    final diferencia = ahora.difference(ultimaAsistencia);
+    
+    if (diferencia.inDays == 0) {
+      if (diferencia.inHours == 0) {
+        return 'hace ${diferencia.inMinutes} minutos';
+      }
+      return 'hace ${diferencia.inHours} horas';
+    } else if (diferencia.inDays == 1) {
+      return 'hace 1 día';
+    } else if (diferencia.inDays < 7) {
+      return 'hace ${diferencia.inDays} días';
+    } else if (diferencia.inDays < 30) {
+      final semanas = (diferencia.inDays / 7).floor();
+      return semanas == 1 ? 'hace 1 semana' : 'hace $semanas semanas';
+    } else if (diferencia.inDays < 365) {
+      final meses = (diferencia.inDays / 30).floor();
+      return meses == 1 ? 'hace 1 mes' : 'hace $meses meses';
+    } else {
+      final anios = (diferencia.inDays / 365).floor();
+      return anios == 1 ? 'hace 1 año' : 'hace $anios años';
     }
   }
 }

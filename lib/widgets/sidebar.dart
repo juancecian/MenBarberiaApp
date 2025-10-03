@@ -34,7 +34,6 @@ class CustomSidebar extends StatelessWidget {
                 Expanded(
                   child: _buildNavigationItems(context, navigationProvider),
                 ),
-                _buildFooter(isCollapsed),
               ],
             ),
           ),
@@ -51,15 +50,15 @@ class CustomSidebar extends StatelessWidget {
       child: Row(
         children: [
           if (isCollapsed) ...[
-            // Cuando está colapsado: icono + chevron clickeable
+            // Cuando está colapsado: solo icono centrado con cursor pointer
             Expanded(
-              child: GestureDetector(
-                onTap: () => navigationProvider.toggleSidebar(),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(6),
+              child: Center(
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () => navigationProvider.toggleSidebar(),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: AppTheme.accentColor,
                         borderRadius: BorderRadius.circular(8),
@@ -67,16 +66,10 @@ class CustomSidebar extends StatelessWidget {
                       child: const Icon(
                         Icons.content_cut,
                         color: Colors.black,
-                        size: 16,
+                        size: 20,
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.chevron_right,
-                      color: AppTheme.textSecondary,
-                      size: 16,
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -142,7 +135,7 @@ class CustomSidebar extends StatelessWidget {
         item: NavigationItem.inicio,
         icon: Icons.dashboard_outlined,
         activeIcon: Icons.dashboard,
-        title: 'Dashboard',
+        title: 'Inicio',
       ),
       _NavigationItemData(
         item: NavigationItem.barberos,
@@ -194,28 +187,7 @@ class CustomSidebar extends StatelessWidget {
                     color: Colors.black,
                   ),
                 ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Admin',
-                        style: TextStyle(
-                          color: AppTheme.textPrimary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        'Administrador',
-                        style: TextStyle(
-                          color: AppTheme.textSecondary,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+
               ],
             ),
           ] else ...[

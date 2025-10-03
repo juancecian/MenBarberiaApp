@@ -6,6 +6,7 @@ import '../database/database_service.dart';
 import 'supabase_service.dart';
 import '../../models/barbero.dart';
 import '../../models/servicio.dart';
+import '../../models/cliente.dart';
 import '../../models/barbero_model.dart' as SupabaseBarbero;
 import '../../models/servicio_model.dart' as SupabaseServicio;
 
@@ -80,7 +81,12 @@ class SyncService with ChangeNotifier {
         );
       }
 
-      // Sincronizar solo servicios (barberos van directo a Supabase)
+      // Sincronizar clientes y servicios
+      final clientesResult = await _syncClientes();
+      if (!clientesResult.success) {
+        return clientesResult;
+      }
+
       final serviciosResult = await _syncServicios();
       if (!serviciosResult.success) {
         return serviciosResult;
@@ -90,7 +96,8 @@ class SyncService with ChangeNotifier {
       
       return SyncResult(
         success: true,
-        message: 'Servicios sincronizados exitosamente',
+        message: 'Clientes y servicios sincronizados exitosamente',
+        syncedClientes: clientesResult.syncedClientes,
         syncedServicios: serviciosResult.syncedServicios,
       );
 
@@ -106,6 +113,79 @@ class SyncService with ChangeNotifier {
     }
   }
 
+  /// Sincroniza clientes entre local y remoto
+  Future<SyncResult> _syncClientes() async {
+    try {
+      // 1. Obtener clientes remotos
+      final remoteClientesData = await _supabaseService.getClientes();
+      final remoteClientes = remoteClientesData
+          .map((data) => Cliente.fromMap(data))
+          .toList();
+      
+      // 2. Obtener clientes locales
+      final localClientes = await _databaseService.getClientes();
+      
+      int syncedCount = 0;
+      
+      // 3. Sincronizar desde remoto a local
+      for (final remoteCliente in remoteClientes) {
+        final localCliente = localClientes.firstWhere(
+          (c) => c.id == remoteCliente.id,
+          orElse: () => Cliente(
+            id: '',
+            nombre: '',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        );
+        
+        if (localCliente.id.isEmpty) {
+          // Cliente no existe localmente, insertarlo
+          await _databaseService.insertCliente(remoteCliente);
+          syncedCount++;
+        } else if (remoteCliente.updatedAt.isAfter(localCliente.updatedAt)) {
+          // Cliente remoto es más reciente, actualizarlo
+          await _databaseService.updateCliente(remoteCliente);
+          syncedCount++;
+        }
+      }
+      
+      // 4. Sincronizar desde local a remoto (clientes nuevos)
+      for (final localCliente in localClientes) {
+        final remoteCliente = remoteClientes.firstWhere(
+          (c) => c.id == localCliente.id,
+          orElse: () => Cliente(
+            id: '',
+            nombre: '',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        );
+        
+        if (remoteCliente.id.isEmpty) {
+          // Cliente no existe remotamente, insertarlo
+          await _supabaseService.insertClienteSync(localCliente.toMap());
+          syncedCount++;
+        } else if (localCliente.updatedAt.isAfter(remoteCliente.updatedAt)) {
+          // Cliente local es más reciente, actualizarlo en remoto
+          await _supabaseService.updateClienteSync(localCliente.toMap());
+          syncedCount++;
+        }
+      }
+      
+      return SyncResult(
+        success: true,
+        message: 'Clientes sincronizados',
+        syncedClientes: syncedCount,
+      );
+      
+    } catch (e) {
+      return SyncResult(
+        success: false,
+        message: 'Error sincronizando clientes: $e',
+      );
+    }
+  }
 
   /// Sincroniza servicios entre local y remoto
   Future<SyncResult> _syncServicios() async {
@@ -260,6 +340,7 @@ class SyncResult {
   final bool success;
   final String message;
   final int syncedBarberos;
+  final int syncedClientes;
   final int syncedServicios;
   final DateTime timestamp;
 
@@ -267,12 +348,13 @@ class SyncResult {
     required this.success,
     required this.message,
     this.syncedBarberos = 0,
+    this.syncedClientes = 0,
     this.syncedServicios = 0,
   }) : timestamp = DateTime.now();
 
   @override
   String toString() {
     return 'SyncResult(success: $success, message: $message, '
-           'barberos: $syncedBarberos, servicios: $syncedServicios)';
+           'barberos: $syncedBarberos, clientes: $syncedClientes, servicios: $syncedServicios)';
   }
 }

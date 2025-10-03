@@ -5,6 +5,7 @@ import '../providers/barbero_provider.dart';
 import '../models/barbero.dart';
 import '../core/theme/app_theme.dart';
 import '../widgets/add_barbero_modal.dart';
+import '../widgets/desktop_button.dart';
 
 class BarberosScreen extends StatefulWidget {
   const BarberosScreen({super.key});
@@ -72,14 +73,11 @@ class _BarberosScreenState extends State<BarberosScreen> {
             ],
           ),
           const Spacer(),
-          ElevatedButton.icon(
+          DesktopButton(
             onPressed: () => _showAddBarberoModal(context),
             icon: const Icon(Icons.person_add),
-            label: const Text('Agregar Barbero'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.accentBlue,
-              foregroundColor: Colors.white,
-            ),
+            label: 'Agregar Barbero',
+            isPrimary: true,
           ),
         ],
       ),
@@ -347,34 +345,7 @@ class _BarberoCardState extends State<_BarberoCard>
                     ],
                   ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      widget.barbero.activo ? 'Activo' : 'Inactivo',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: widget.barbero.activo ? AppTheme.successColor : AppTheme.errorColor,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppTheme.successColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        'Disponible',
-                        style: TextStyle(
-                          color: AppTheme.successColor,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+
                 AnimatedContainer(
                   width: _isHovered ? 60.0 : 0.0,
                   duration: const Duration(milliseconds: 300),

@@ -71,62 +71,81 @@ class _SimpleInputState extends State<SimpleInput> {
       height: 76, // Fixed height to accommodate error text
       child: Stack(
         children: [
-          Container(
-            height: 56,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: AppTheme.secondaryColor.withOpacity(0.3),
-                width: 1.0,
+          Focus(
+            onFocusChange: _onFocusChange,
+            child: TextFormField(
+              controller: widget.controller,
+              focusNode: widget.focusNode,
+              keyboardType: widget.keyboardType,
+              inputFormatters: widget.inputFormatters,
+              obscureText: widget.obscureText,
+              maxLines: widget.maxLines,
+              enabled: widget.enabled,
+              onTap: widget.onTap,
+              readOnly: widget.readOnly,
+              style: const TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
               ),
-              color: _hasError
-                ? AppTheme.errorColor.withOpacity(0.1)
-                : (widget.enabled 
-                  ? AppTheme.surfaceColor
-                  : AppTheme.secondaryColor.withOpacity(0.1)),
-            ),
-            child: Focus(
-              onFocusChange: _onFocusChange,
-              child: TextFormField(
-                controller: widget.controller,
-                focusNode: widget.focusNode,
-                keyboardType: widget.keyboardType,
-                inputFormatters: widget.inputFormatters,
-                obscureText: widget.obscureText,
-                maxLines: widget.maxLines,
-                enabled: widget.enabled,
-                onTap: widget.onTap,
-                readOnly: widget.readOnly,
-                style: const TextStyle(
-                  color: AppTheme.textPrimary,
+              decoration: InputDecoration(
+                hintText: widget.placeholder,
+                hintStyle: TextStyle(
+                  color: AppTheme.textSecondary,
                   fontSize: 16,
                   fontWeight: FontWeight.w400,
                 ),
-                decoration: InputDecoration(
-                  hintText: widget.placeholder,
-                  hintStyle: TextStyle(
-                    color: AppTheme.textSecondary.withOpacity(0.6),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
+                prefixIcon: widget.icon != null 
+                  ? Icon(
+                      widget.icon,
+                      color: AppTheme.textSecondary,
+                      size: 20,
+                    )
+                  : null,
+                suffixIcon: widget.suffix,
+                filled: true,
+                fillColor: AppTheme.primaryColor,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: AppTheme.secondaryColor.withOpacity(0.3),
+                    width: 1,
                   ),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.only(
-                    left: widget.icon != null ? 48 : 16,
-                    right: widget.suffix != null ? 48 : 16,
-                    top: 16,
-                    bottom: 16,
-                  ),
-                  prefixIcon: widget.icon != null 
-                    ? Icon(
-                        widget.icon,
-                        color: AppTheme.textSecondary.withOpacity(0.7),
-                        size: 20,
-                      )
-                    : null,
-                  suffixIcon: widget.suffix,
                 ),
-                validator: widget.validator,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: AppTheme.secondaryColor.withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: AppTheme.accentColor,
+                    width: 2,
+                  ),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: AppTheme.errorColor,
+                    width: 2,
+                  ),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: AppTheme.errorColor,
+                    width: 2,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
               ),
+              validator: widget.validator,
             ),
           ),
           
@@ -220,72 +239,89 @@ class _SimpleDropdownState<T> extends State<SimpleDropdown<T>> {
       height: 76, // Fixed height to accommodate error text
       child: Stack(
         children: [
-          Container(
-            height: 56,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: _hasError 
-                  ? AppTheme.errorColor 
-                  : AppTheme.secondaryColor.withOpacity(0.3),
-                width: 1.0,
-              ),
-              color: _hasError
-                ? AppTheme.errorColor.withOpacity(0.1)
-                : (widget.enabled 
-                  ? AppTheme.surfaceColor
-                  : AppTheme.secondaryColor.withOpacity(0.1)),
-            ),
-            child: DropdownButtonFormField<T>(
-              focusNode: _focusNode,
-              value: widget.value,
-              items: widget.items,
-              onChanged: (value) {
-                // Llamar al callback original
-                if (widget.onChanged != null) {
-                  widget.onChanged!(value);
-                }
-                // Limpiar error si se selecciona un valor
-                if (value != null && _hasError) {
-                  setState(() {
-                    _hasError = false;
-                    _errorText = null;
-                  });
-                }
-              },
-              validator: null, // Removemos el validator del FormField para usar solo el nuestro
-              hint: Text(
-                widget.placeholder,
-                style: TextStyle(
-                  color: AppTheme.textSecondary.withOpacity(0.6),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.only(
-                  left: widget.icon != null ? 48 : 16,
-                  right: 40, // More space for dropdown arrow
-                  top: 16,
-                  bottom: 16,
-                ),
-                prefixIcon: widget.icon != null 
-                  ? Icon(
-                      widget.icon,
-                      color: AppTheme.textSecondary.withOpacity(0.7),
-                      size: 20,
-                    )
-                  : null,
-              ),
-              style: const TextStyle(
-                color: AppTheme.textPrimary,
+          DropdownButtonFormField<T>(
+            focusNode: _focusNode,
+            value: widget.value,
+            items: widget.items,
+            onChanged: (value) {
+              // Llamar al callback original
+              if (widget.onChanged != null) {
+                widget.onChanged!(value);
+              }
+              // Limpiar error si se selecciona un valor
+              if (value != null && _hasError) {
+                setState(() {
+                  _hasError = false;
+                  _errorText = null;
+                });
+              }
+            },
+            validator: null, // Removemos el validator del FormField para usar solo el nuestro
+            hint: Text(
+              widget.placeholder,
+              style: TextStyle(
+                color: AppTheme.textSecondary,
                 fontSize: 16,
                 fontWeight: FontWeight.w400,
               ),
-              dropdownColor: AppTheme.surfaceColor,
-              iconEnabledColor: AppTheme.textSecondary.withOpacity(0.7),
             ),
+            style: const TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+            ),
+            decoration: InputDecoration(
+              prefixIcon: widget.icon != null 
+                ? Icon(
+                    widget.icon,
+                    color: AppTheme.textSecondary,
+                    size: 20,
+                  )
+                : null,
+              filled: true,
+              fillColor: AppTheme.primaryColor,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: AppTheme.secondaryColor.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: AppTheme.secondaryColor.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: AppTheme.accentColor,
+                  width: 2,
+                ),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: AppTheme.errorColor,
+                  width: 2,
+                ),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: AppTheme.errorColor,
+                  width: 2,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+            ),
+            dropdownColor: AppTheme.surfaceColor,
+            iconEnabledColor: AppTheme.textSecondary,
           ),
           
           // Error Text - Positioned absolutely

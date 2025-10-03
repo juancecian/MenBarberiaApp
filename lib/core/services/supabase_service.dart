@@ -229,4 +229,55 @@ class SupabaseService {
       rethrow;
     }
   }
+
+  // CRUD Operations for Clients
+
+  /// Obtener todos los clientes
+  Future<List<Map<String, dynamic>>> getClientes() async {
+    if (!_isInitialized) {
+      throw Exception('SupabaseService no está inicializado');
+    }
+
+    try {
+      final response = await client
+          .from('clients')
+          .select()
+          .order('nombre', ascending: true);
+      
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      print('Error al obtener clientes: $e');
+      rethrow;
+    }
+  }
+
+  /// Insertar cliente en Supabase para sincronización
+  Future<void> insertClienteSync(Map<String, dynamic> cliente) async {
+    if (!_isInitialized) {
+      throw Exception('SupabaseService no está inicializado');
+    }
+
+    try {
+      await client.from('clients').insert(cliente);
+    } catch (e) {
+      print('Error al insertar cliente: $e');
+      rethrow;
+    }
+  }
+
+  /// Actualizar cliente en Supabase para sincronización
+  Future<void> updateClienteSync(Map<String, dynamic> cliente) async {
+    if (!_isInitialized) {
+      throw Exception('SupabaseService no está inicializado');
+    }
+
+    try {
+      final updateData = Map<String, dynamic>.from(cliente);
+      updateData.remove('id'); // No actualizar el ID
+      await client.from('clients').update(updateData).eq('id', cliente['id']);
+    } catch (e) {
+      print('Error al actualizar cliente: $e');
+      rethrow;
+    }
+  }
 }
