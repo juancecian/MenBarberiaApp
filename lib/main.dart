@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/services/supabase_service.dart';
+import 'services/update_service.dart';
 import 'providers/barbero_provider.dart';
 import 'providers/servicio_provider.dart';
 import 'providers/cliente_provider.dart';
@@ -25,6 +26,10 @@ void main() async {
   } else {
     print('❌ No se pudo conectar a Supabase');
   }
+  
+  // Inicializar servicio de actualizaciones
+  final updateService = UpdateService();
+  await updateService.initialize();
   
   // Lanzar la aplicación
   runApp(MenBarberiaApp(supabaseService: supabaseService));

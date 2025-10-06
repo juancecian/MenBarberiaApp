@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -11,6 +12,8 @@ import '../widgets/add_servicio_modal.dart';
 import '../widgets/sync_status_widget.dart';
 import '../widgets/date_filter_widget.dart';
 import '../widgets/desktop_button.dart';
+import '../widgets/update_notification_widget.dart';
+import '../services/update_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -22,6 +25,9 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
   final DateFormat _displayDateFormat = DateFormat('dd/MM/yyyy');
+  bool _isIncomeVisible = false;
+  final String _correctPassword = 'menbarberia25';
+  Timer? _hideTimer;
 
   @override
   void initState() {
@@ -30,27 +36,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = Provider.of<ServicioProvider>(context, listen: false);
       provider.loadServicios(); // Esto cargará todos y aplicará el filtro actual
+      
+      // Verificar actualizaciones automáticamente si está habilitado
+      final updateService = UpdateService();
+      if (updateService.isAutoUpdateEnabled()) {
+        updateService.checkForUpdatesOnStartup();
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _hideTimer?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      body: Column(
+      body: Stack(
         children: [
-          _buildHeader(context),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _buildMetricsCards(),
-                  const SizedBox(height: 10),
-                  _buildServicesSection(),
-                ],
+          Column(
+            children: [
+              _buildHeader(context),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _buildMetricsCards(),
+                      const SizedBox(height: 10),
+                      _buildServicesSection(),
+                    ],
+                  ),
+                ),
               ),
-            ),
+            ],
+          ),
+          // Widget de notificación de actualización
+          const Positioned(
+            top: 80,
+            right: 0,
+            left: 0,
+            child: UpdateNotificationWidget(),
           ),
         ],
       ),
@@ -123,11 +152,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: _MetricCard(
+              child: _IncomeMetricCard(
                 title: 'Ingresos del Día',
                 value: '\$${NumberFormatter.formatTotal(metrics['ingresosTotales'] ?? 0)}',
                 icon: Icons.attach_money,
                 color: AppTheme.successColor,
+                isVisible: _isIncomeVisible,
+                onToggleVisibility: _toggleIncomeVisibility,
               ),
             ),
 
@@ -267,6 +298,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  void _toggleIncomeVisibility() {
+    if (_isIncomeVisible) {
+      // Si está visible, ocultarlo directamente y cancelar timer
+      _hideTimer?.cancel();
+      setState(() {
+        _isIncomeVisible = false;
+      });
+    } else {
+      // Si está oculto, mostrar modal de contraseña
+      _showPasswordModal();
+    }
+  }
+
+  void _startHideTimer() {
+    // Cancelar timer anterior si existe
+    _hideTimer?.cancel();
+    
+    // Iniciar nuevo timer de 5 segundos
+    _hideTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _isIncomeVisible = false;
+        });
+      }
+    });
+  }
+
+  void _showPasswordModal() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _PasswordModal(
+        onPasswordCorrect: () {
+          setState(() {
+            _isIncomeVisible = true;
+          });
+          Navigator.of(context).pop();
+          _startHideTimer(); // Iniciar timer de 5 segundos
+        },
+        onCancel: () => Navigator.of(context).pop(),
+        correctPassword: _correctPassword,
+      ),
+    );
+  }
+
   void _deleteService(Servicio servicio) {
     showDialog(
       context: context,
@@ -324,6 +400,27 @@ class _MetricCard extends StatefulWidget {
 
   @override
   State<_MetricCard> createState() => _MetricCardState();
+}
+
+class _IncomeMetricCard extends StatefulWidget {
+  final String title;
+  final String value;
+  final IconData icon;
+  final Color color;
+  final bool isVisible;
+  final VoidCallback onToggleVisibility;
+
+  const _IncomeMetricCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.color,
+    required this.isVisible,
+    required this.onToggleVisibility,
+  });
+
+  @override
+  State<_IncomeMetricCard> createState() => _IncomeMetricCardState();
 }
 
 class _MetricCardState extends State<_MetricCard>
@@ -442,6 +539,135 @@ class _MetricCardState extends State<_MetricCard>
             ],
           ],
         ),
+        ),
+      ),
+    );
+  }
+}
+
+class _IncomeMetricCardState extends State<_IncomeMetricCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _hoverController;
+  bool _isHovered = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _hoverController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+  }
+
+  @override
+  void dispose() {
+    _hoverController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) {
+        if (mounted) {
+          setState(() => _isHovered = true);
+          _hoverController.forward();
+        }
+      },
+      onExit: (_) {
+        if (mounted) {
+          setState(() => _isHovered = false);
+          _hoverController.reverse();
+        }
+      },
+      child: AnimatedScale(
+        scale: _isHovered ? 1.05 : 1.0,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryColor,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: widget.color.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      widget.icon,
+                      color: widget.color,
+                      size: 24,
+                    ),
+                  ),
+                  const Spacer(),
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: widget.onToggleVisibility,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.textSecondary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          widget.isVisible ? Icons.visibility_off : Icons.visibility,
+                          color: AppTheme.textSecondary,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: widget.color.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'Hoy',
+                      style: TextStyle(
+                        color: widget.color,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                widget.title,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                widget.isVisible ? widget.value : '***',
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -718,5 +944,223 @@ class _ServiceCardState extends State<_ServiceCard>
     } else {
       return '${date.day}/${date.month}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
     }
+  }
+}
+// Widget del Modal de Contraseña
+class _PasswordModal extends StatefulWidget {
+  final VoidCallback onPasswordCorrect;
+  final VoidCallback onCancel;
+  final String correctPassword;
+
+  const _PasswordModal({
+    required this.onPasswordCorrect,
+    required this.onCancel,
+    required this.correctPassword,
+  });
+
+  @override
+  State<_PasswordModal> createState() => _PasswordModalState();
+}
+
+class _PasswordModalState extends State<_PasswordModal> {
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isPasswordVisible = false;
+  bool _isIncorrectPassword = false;
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _checkPassword() {
+    if (_passwordController.text == widget.correctPassword) {
+      widget.onPasswordCorrect();
+    } else {
+      setState(() {
+        _isIncorrectPassword = true;
+      });
+      // Limpiar el error después de 2 segundos
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          setState(() {
+            _isIncorrectPassword = false;
+          });
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        width: 400,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppTheme.backgroundColor,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.lock,
+                    color: AppTheme.accentColor,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Acceso Restringido',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        'Ingresa la contraseña para ver los ingresos',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            // Campo de contraseña
+            TextField(
+              controller: _passwordController,
+              obscureText: !_isPasswordVisible,
+              autofocus: true,
+              onSubmitted: (_) => _checkPassword(),
+              decoration: InputDecoration(
+                labelText: 'Contraseña',
+                labelStyle: TextStyle(color: AppTheme.textSecondary),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: _isIncorrectPassword ? AppTheme.errorColor : AppTheme.secondaryColor,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: _isIncorrectPassword ? AppTheme.errorColor : AppTheme.secondaryColor,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: _isIncorrectPassword ? AppTheme.errorColor : AppTheme.accentColor,
+                    width: 2,
+                  ),
+                ),
+                suffixIcon: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordVisible = !_isPasswordVisible;
+                    });
+                  },
+                  icon: Icon(
+                    _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                filled: true,
+                fillColor: AppTheme.primaryColor,
+              ),
+              style: TextStyle(color: AppTheme.textPrimary),
+            ),
+            if (_isIncorrectPassword) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    color: AppTheme.errorColor,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Contraseña incorrecta',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppTheme.errorColor,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            const SizedBox(height: 24),
+            // Botones
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: widget.onCancel,
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Cancelar',
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _checkPassword,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.accentColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Verificar',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

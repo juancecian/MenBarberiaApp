@@ -1,6 +1,6 @@
 name: men_barberia
 description: Aplicación de gestión para barbería
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -35,6 +35,9 @@ dependencies:
   # Window Management
   window_manager: ^0.3.7
   screen_retriever: ^0.1.9
+
+  # Auto Updates
+  desktop_updater: ^1.4.0
 
   # Icons
   flutter_launcher_icons: ^0.13.1

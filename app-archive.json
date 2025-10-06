@@ -1,0 +1,74 @@
+{
+  "appName": "Men Barbería",
+  "description": "Aplicación de gestión para barbería",
+  "items": [
+    {
+      "version": "1.0.1",
+      "shortVersion": 2,
+      "changes": [
+        {
+          "type": "feat",
+          "message": "Sistema de actualizaciones automáticas implementado"
+        },
+        {
+          "type": "feat",
+          "message": "Notificaciones de actualización en tiempo real"
+        },
+        {
+          "type": "fix",
+          "message": "Corrección de errores de compilación"
+        },
+        {
+          "type": "chore",
+          "message": "Mejoras de rendimiento y estabilidad"
+        }
+      ],
+      "date": "2024-10-06",
+      "mandatory": false,
+      "url": "https://github.com/juancecian/MenBarberiaApp/releases/download/v1.0.1/men_barberia_v1.0.1_windows.zip",
+      "platform": "windows"
+    },
+    {
+      "version": "1.0.1",
+      "shortVersion": 2,
+      "changes": [
+        {
+          "type": "feat",
+          "message": "Sistema de actualizaciones automáticas"
+        },
+        {
+          "type": "chore",
+          "message": "Mejoras de rendimiento y estabilidad"
+        },
+        {
+          "message": "Corrección de errores menores"
+        }
+      ],
+      "date": "2024-10-06",
+      "mandatory": false,
+      "url": "https://github.com/juancecian/MenBarberiaApp/releases/download/v1.0.1/men_barberia_v1.0.1_macos.dmg",
+      "platform": "macos"
+    },
+    {
+      "version": "1.0.1",
+      "shortVersion": 2,
+      "changes": [
+        {
+          "type": "feat",
+          "message": "Sistema de actualizaciones automáticas"
+        },
+        {
+          "type": "chore",
+          "message": "Mejoras de rendimiento y estabilidad"
+        },
+        {
+          "message": "Corrección de errores menores"
+        }
+      ],
+      "date": "2024-10-06",
+      "mandatory": false,
+      "url": "https://github.com/juancecian/MenBarberiaApp/releases/download/v1.0.1/men_barberia_v1.0.1_linux.tar.gz",
+      "platform": "linux"
+    }
+  ]
+}

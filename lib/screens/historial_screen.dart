@@ -340,7 +340,7 @@ class _HistorialScreenState extends State<HistorialScreen> {
                             ],
                           ),
                         )
-                      : _BarberoAccordionList(
+                      : _BarberosList(
                           serviciosPorBarbero: serviciosPorBarbero,
                           servicios: _servicios,
                         ),
@@ -369,17 +369,17 @@ class _MetricCard extends StatefulWidget {
   State<_MetricCard> createState() => _MetricCardState();
 }
 
-class _BarberoAccordionList extends StatefulWidget {
+class _BarberosList extends StatefulWidget {
   final Map<String, int> serviciosPorBarbero;
   final List<Servicio> servicios;
 
-  const _BarberoAccordionList({
+  const _BarberosList({
     required this.serviciosPorBarbero,
     required this.servicios,
   });
 
   @override
-  State<_BarberoAccordionList> createState() => _BarberoAccordionListState();
+  State<_BarberosList> createState() => _BarberosListState();
 }
 
 class _MetricCardState extends State<_MetricCard>
@@ -480,12 +480,22 @@ class _MetricCardState extends State<_MetricCard>
   }
 }
 
-class _BarberoAccordionListState extends State<_BarberoAccordionList> {
-  final Set<String> _expandedBarberos = {};
-
+class _BarberosListState extends State<_BarberosList> {
   List<Servicio> _getServiciosPorBarbero(String barberoId) {
     return widget.servicios.where((servicio) => servicio.barberId == barberoId).toList()
       ..sort((a, b) => b.registrationDate.compareTo(a.registrationDate));
+  }
+
+  void _showServiciosModal(BuildContext context, String barberoId, String barberoNombre, List<Servicio> servicios) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return _ServiciosModal(
+          barberoNombre: barberoNombre,
+          servicios: servicios,
+        );
+      },
+    );
   }
 
   @override
@@ -510,14 +520,13 @@ class _BarberoAccordionListState extends State<_BarberoAccordionList> {
             ..sort((a, b) => b.value.compareTo(a.value));
 
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
           itemCount: barberosOrdenados.length,
           itemBuilder: (context, index) {
             final entry = barberosOrdenados[index];
             final barbero = barberoProvider.barberos
                 .where((b) => b.id == entry.key)
                 .firstOrNull;
-            final isExpanded = _expandedBarberos.contains(entry.key);
             final serviciosBarbero = _getServiciosPorBarbero(entry.key);
             
             return Container(
@@ -533,211 +542,81 @@ class _BarberoAccordionListState extends State<_BarberoAccordionList> {
                   ),
                 ],
               ),
-              child: Column(
-                children: [
-                  // Header del accordion
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        if (isExpanded) {
-                          _expandedBarberos.remove(entry.key);
-                        } else {
-                          _expandedBarberos.add(entry.key);
-                        }
-                      });
-                    },
-                    borderRadius: BorderRadius.circular(12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Row(
-                        children: [
-                          // Avatar del barbero
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: AppTheme.accentColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.person,
-                              color: AppTheme.accentColor,
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          // Información del barbero
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  barbero?.nombre ?? 'Desconocido',
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.textPrimary,
-                                    fontSize: 16,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '${entry.value} servicio${entry.value != 1 ? 's' : ''} realizados',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: AppTheme.textSecondary,
-                                    fontSize: 12,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Badge con total recaudado
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppTheme.successColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              '\$${NumberFormatter.formatTotal(serviciosBarbero.fold(0.0, (sum, s) => sum + s.price))}',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppTheme.successColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
+              child: InkWell(
+                onTap: () {
+                  _showServiciosModal(
+                    context,
+                    entry.key,
+                    barbero?.nombre ?? 'Desconocido',
+                    serviciosBarbero,
+                  );
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      // Avatar del barbero
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.accentColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.person,
+                          color: AppTheme.accentColor,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      // Información del barbero
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              barbero?.nombre ?? 'Desconocido',
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textPrimary,
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          // Flecha de expansión
-                          AnimatedRotation(
-                            turns: isExpanded ? 0.5 : 0.0,
-                            duration: const Duration(milliseconds: 200),
-                            child: const Icon(
-                              Icons.keyboard_arrow_down,
-                              color: AppTheme.textSecondary,
-                              size: 24,
+                            const SizedBox(height: 4),
+                            Text(
+                              '${entry.value} servicio${entry.value != 1 ? 's' : ''} realizados',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: AppTheme.textSecondary,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
+                      // Badge con total recaudado
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppTheme.successColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '\$${NumberFormatter.formatTotal(serviciosBarbero.fold(0.0, (sum, s) => sum + s.price))}',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: AppTheme.successColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Icono de ver más
+                      const Icon(
+                        Icons.arrow_forward_ios,
+                        color: AppTheme.textSecondary,
+                        size: 16,
+                      ),
+                    ],
                   ),
-                  // Contenido expandible
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    child: isExpanded
-                        ? Container(
-                            constraints: const BoxConstraints(maxHeight: 280),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Divider(color: AppTheme.secondaryColor, height: 1),
-                                const SizedBox(height: 8),
-                                Flexible(
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                                    child: ListView.separated(
-                                      shrinkWrap: true,
-                                      itemCount: serviciosBarbero.length,
-                                      separatorBuilder: (context, index) => const SizedBox(height: 6),
-                                      itemBuilder: (context, index) {
-                                        final servicio = serviciosBarbero[index];
-                                        return Container(
-                                          padding: const EdgeInsets.all(10),
-                                          decoration: BoxDecoration(
-                                            color: AppTheme.surfaceColor.withOpacity(0.5),
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              // Icono del servicio
-                                              Container(
-                                                padding: const EdgeInsets.all(4),
-                                                decoration: BoxDecoration(
-                                                  color: AppTheme.accentColor.withOpacity(0.1),
-                                                  borderRadius: BorderRadius.circular(4),
-                                                ),
-                                                child: const Icon(
-                                                  Icons.content_cut,
-                                                  color: AppTheme.accentColor,
-                                                  size: 14,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 10),
-                                              // Información del servicio
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    Text(
-                                                      servicio.clientName,
-                                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                        fontWeight: FontWeight.w500,
-                                                        color: AppTheme.textPrimary,
-                                                        fontSize: 13,
-                                                      ),
-                                                      maxLines: 1,
-                                                      overflow: TextOverflow.ellipsis,
-                                                    ),
-                                                    const SizedBox(height: 2),
-                                                    Row(
-                                                      children: [
-                                                        Container(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                                                          decoration: BoxDecoration(
-                                                            color: AppTheme.accentBlue.withOpacity(0.1),
-                                                            borderRadius: BorderRadius.circular(3),
-                                                          ),
-                                                          child: Text(
-                                                            _getTipoServicioNombre(servicio.typeService),
-                                                            style: TextStyle(
-                                                              color: AppTheme.accentBlue,
-                                                              fontSize: 10,
-                                                              fontWeight: FontWeight.w500,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        const SizedBox(width: 6),
-                                                        Text(
-                                                          DateFormat('HH:mm').format(servicio.registrationDate),
-                                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                            color: AppTheme.textSecondary,
-                                                            fontSize: 10,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              // Precio
-                                              Text(
-                                                '\$${NumberFormatter.formatServicePrice(servicio.price, servicio.perquisiste ?? 0)}',
-                                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: AppTheme.successColor,
-                                                  fontSize: 13,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                              ],
-                            ),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                ],
+                ),
               ),
             );
           },
@@ -913,6 +792,237 @@ class _ServicioCardState extends State<_ServicioCard>
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  String _getTipoServicioNombre(int tipoId) {
+    switch (tipoId) {
+      case 1:
+        return 'Corte';
+      case 2:
+        return 'Barba';
+      case 3:
+        return 'Corte + Barba';
+      case 4:
+        return 'Afeitado';
+      default:
+        return 'Servicio';
+    }
+  }
+}
+
+// Widget del Modal para mostrar servicios
+class _ServiciosModal extends StatelessWidget {
+  final String barberoNombre;
+  final List<Servicio> servicios;
+
+  const _ServiciosModal({
+    required this.barberoNombre,
+    required this.servicios,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.9,
+        height: MediaQuery.of(context).size.height * 0.8,
+        decoration: BoxDecoration(
+          color: AppTheme.backgroundColor,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // Header del modal
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                color: AppTheme.primaryColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.accentColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.person,
+                      color: AppTheme.accentColor,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Servicios de $barberoNombre',
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        Text(
+                          '${servicios.length} servicio${servicios.length != 1 ? 's' : ''} realizados',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(
+                      Icons.close,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Lista de servicios
+            Expanded(
+              child: servicios.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'No hay servicios para mostrar',
+                        style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 16,
+                        ),
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(20),
+                      itemCount: servicios.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final servicio = servicios[index];
+                        return Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              // Icono del servicio
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.accentColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.content_cut,
+                                  color: AppTheme.accentColor,
+                                  size: 18,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              // Información del servicio
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      servicio.clientName,
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: AppTheme.textPrimary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 4,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.accentBlue.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            _getTipoServicioNombre(servicio.typeService),
+                                            style: const TextStyle(
+                                              color: AppTheme.accentBlue,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: servicio.paymentType == 1 
+                                                ? AppTheme.successColor.withOpacity(0.1)
+                                                : AppTheme.accentColor.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            servicio.paymentTypeText,
+                                            style: TextStyle(
+                                              color: servicio.paymentType == 1 
+                                                  ? AppTheme.successColor
+                                                  : AppTheme.accentColor,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                        Text(
+                                          DateFormat('HH:mm').format(servicio.registrationDate),
+                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                            color: AppTheme.textSecondary,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Precio
+                              Text(
+                                '\$${NumberFormatter.formatServicePrice(servicio.price, servicio.perquisiste ?? 0)}',
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.successColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
         ),
       ),
     );

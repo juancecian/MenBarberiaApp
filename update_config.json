@@ -1,0 +1,30 @@
+{
+  "update_config": {
+    "repository": {
+      "owner": "tu-usuario",
+      "name": "men-barberia",
+      "platform": "github"
+    },
+    "update_settings": {
+      "check_interval_hours": 24,
+      "auto_download": false,
+      "notify_user": true,
+      "require_restart": true
+    },
+    "supported_platforms": [
+      "windows",
+      "macos",
+      "linux"
+    ],
+    "release_channels": {
+      "stable": {
+        "description": "Versión estable para producción",
+        "auto_update": true
+      },
+      "beta": {
+        "description": "Versión beta para pruebas",
+        "auto_update": false
+      }
+    }
+  }
+}
