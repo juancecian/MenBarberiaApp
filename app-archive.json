@@ -3,7 +3,7 @@
   "description": "Aplicación de gestión para barbería",
   "items": [
     {
-      "version": "1.0.1",
+      "version": "1.0.2",
       "shortVersion": 3,
       "changes": [
         {
@@ -29,7 +29,7 @@
       "platform": "windows"
     },
     {
-      "version": "1.0.1",
+      "version": "1.0.2",
       "shortVersion": 3,
       "changes": [
         {
@@ -50,7 +50,7 @@
       "platform": "macos"
     },
     {
-      "version": "1.0.1",
+      "version": "1.0.2",
       "shortVersion": 3,
       "changes": [
         {
