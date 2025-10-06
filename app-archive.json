@@ -4,7 +4,7 @@
   "items": [
     {
       "version": "1.0.1",
-      "shortVersion": 2,
+      "shortVersion": 3,
       "changes": [
         {
           "type": "feat",
@@ -30,7 +30,7 @@
     },
     {
       "version": "1.0.1",
-      "shortVersion": 2,
+      "shortVersion": 3,
       "changes": [
         {
           "type": "feat",
@@ -51,7 +51,7 @@
     },
     {
       "version": "1.0.1",
-      "shortVersion": 2,
+      "shortVersion": 3,
       "changes": [
         {
           "type": "feat",
