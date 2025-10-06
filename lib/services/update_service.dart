@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 
 class UpdateService {
   static final UpdateService _instance = UpdateService._internal();
@@ -43,7 +45,7 @@ class UpdateService {
     }
   }
 
-  /// Verifica si hay actualizaciones disponibles (simulado para debug)
+  /// Verifica si hay actualizaciones disponibles
   Future<Map<String, dynamic>?> checkForUpdates() async {
     try {
       if (kDebugMode) {
@@ -52,19 +54,54 @@ class UpdateService {
         
         // Simular que hay una actualización disponible en debug
         return {
-          'version': '1.0.1',
+          'version': '1.0.3',
           'releaseNotes': 'Corrección de errores y mejoras de rendimiento',
           'mandatory': false,
-          'url': 'https://github.com/juancecian/MenBarberiaApp/releases/download/v1.0.1/men_barberia_v1.0.1.zip'
+          'url': 'https://github.com/juancecian/MenBarberiaApp/releases/download/v1.0.3/men_barberia_v1.0.3_windows.zip'
         };
       }
 
-      // En release, el widget DesktopUpdater manejará automáticamente las actualizaciones
-      return null;
-    } catch (e) {
-      if (kDebugMode) {
-        print('UpdateService: Error al verificar actualizaciones: $e');
+      // En release, consultar GitHub real
+      print('UpdateService: Consultando GitHub para actualizaciones...');
+      final response = await http.get(Uri.parse(_appArchiveUrl)).timeout(
+        const Duration(seconds: 10),
+      );
+
+      if (response.statusCode == 200) {
+        final archiveData = jsonDecode(response.body);
+        final currentVersion = getCurrentVersion();
+        final currentPlatform = _getCurrentPlatform();
+        
+        print('UpdateService: Versión actual: $currentVersion');
+        print('UpdateService: Plataforma: $currentPlatform');
+        
+        // Buscar actualización para la plataforma actual
+        for (var item in archiveData['items']) {
+          if (item['platform'] == currentPlatform) {
+            final availableVersion = item['version'];
+            print('UpdateService: Versión disponible: $availableVersion');
+            
+            if (_isNewerVersion(availableVersion, currentVersion)) {
+              print('UpdateService: ¡Actualización encontrada!');
+              return {
+                'version': availableVersion,
+                'releaseNotes': _formatReleaseNotes(item['changes']),
+                'mandatory': item['mandatory'] ?? false,
+                'url': item['url'],
+                'date': item['date'],
+              };
+            }
+          }
+        }
+        
+        print('UpdateService: No hay actualizaciones disponibles');
+        return null;
+      } else {
+        print('UpdateService: Error al obtener actualizaciones: ${response.statusCode}');
+        return null;
       }
+    } catch (e) {
+      print('UpdateService: Error al verificar actualizaciones: $e');
       return null;
     }
   }
@@ -85,7 +122,7 @@ class UpdateService {
 
   /// Obtiene la versión actual de la aplicación
   String getCurrentVersion() {
-    return '1.0.1'; // Actualizar con cada nueva versión
+    return '1.0.3'; // Actualizar con cada nueva versión
   }
 
   /// Verifica si las actualizaciones automáticas están habilitadas
@@ -98,5 +135,42 @@ class UpdateService {
     if (kDebugMode) {
       print('UpdateService: Actualizaciones automáticas ${enabled ? 'habilitadas' : 'deshabilitadas'}');
     }
+  }
+
+  /// Obtiene la plataforma actual
+  String _getCurrentPlatform() {
+    if (Platform.isWindows) return 'windows';
+    if (Platform.isMacOS) return 'macos';
+    if (Platform.isLinux) return 'linux';
+    return 'unknown';
+  }
+
+  /// Compara versiones (formato semver)
+  bool _isNewerVersion(String availableVersion, String currentVersion) {
+    final available = _parseVersion(availableVersion);
+    final current = _parseVersion(currentVersion);
+    
+    for (int i = 0; i < 3; i++) {
+      if (available[i] > current[i]) return true;
+      if (available[i] < current[i]) return false;
+    }
+    
+    return false; // Misma versión
+  }
+
+  /// Parsea una versión en formato semver
+  List<int> _parseVersion(String version) {
+    final parts = version.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+    while (parts.length < 3) {
+      parts.add(0);
+    }
+    return parts;
+  }
+
+  /// Formatea las notas de release
+  String _formatReleaseNotes(List<dynamic> changes) {
+    return changes.map((change) => 
+      '• ${change['message'] ?? 'Cambio sin descripción'}'
+    ).join('\n');
   }
 }
