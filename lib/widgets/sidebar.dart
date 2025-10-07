@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../providers/navigation_provider.dart';
 import '../core/theme/app_theme.dart';
@@ -29,11 +30,12 @@ class CustomSidebar extends StatelessWidget {
             ),
             child: Column(
               children: [
-                _buildHeader(context, navigationProvider),
+                _buildHeader(context, navigationProvider                ),
                 const SizedBox(height: 20),
                 Expanded(
                   child: _buildNavigationItems(context, navigationProvider),
                 ),
+                _buildFooter(navigationProvider.isCollapsed),
               ],
             ),
           ),
@@ -177,18 +179,99 @@ class CustomSidebar extends StatelessWidget {
           const Divider(color: AppTheme.secondaryColor),
           SizedBox(height: isCollapsed ? 8 : 16),
           if (!isCollapsed) ...[
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: AppTheme.accentColor,
-                  child: const Icon(
-                    Icons.person,
-                    color: Colors.black,
-                  ),
-                ),
-
-              ],
+            const SizedBox(height: 16),
+            // Información de versión
+            FutureBuilder<PackageInfo>(
+              future: PackageInfo.fromPlatform(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.secondaryColor.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: AppTheme.textSecondary,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Versión ${snapshot.data!.version}',
+                                style: TextStyle(
+                                  color: AppTheme.textPrimary,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                } else if (snapshot.hasError) {
+                  return Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: Colors.red,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Error al obtener versión',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                } else {
+                  return Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.secondaryColor.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Cargando versión...',
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              },
             ),
           ] else ...[
             CircleAvatar(
@@ -199,6 +282,56 @@ class CustomSidebar extends StatelessWidget {
                 color: Colors.black,
                 size: isCollapsed ? 16 : 20,
               ),
+            ),
+            const SizedBox(height: 12),
+            // Versión en modo colapsado
+            FutureBuilder<PackageInfo>(
+              future: PackageInfo.fromPlatform(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.secondaryColor.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: AppTheme.textSecondary,
+                          size: 14,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'v${snapshot.data!.version}',
+                          style: TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                } else {
+                  return Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.secondaryColor.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  );
+                }
+              },
             ),
           ],
         ],

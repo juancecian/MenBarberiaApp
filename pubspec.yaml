@@ -1,6 +1,6 @@
-name: men_barberia
-description: Aplicación de gestión para barbería
-version: 1.0.4+1
+﻿name: men_barberia
+description: AplicaciÃ³n de gestiÃ³n para barberÃ­a
+version: 1.0.5
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -30,7 +30,7 @@ dependencies:
 
   # Supabase
   supabase_flutter: ^2.10.1
-  # Las dependencias restantes serán manejadas por supabase_flutter
+  # Las dependencias restantes serÃ¡n manejadas por supabase_flutter
 
   # Window Management
   window_manager: ^0.3.7
@@ -62,3 +62,4 @@ flutter_icons:
     generate: true
     image_path: "assets/icons/logo.png"
     icon_size: 48
+
