@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:desktop_updater/desktop_updater.dart';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 import '../services/update_service.dart';
 
 class UpdateNotificationWidget extends StatefulWidget {
@@ -67,46 +72,48 @@ class _UpdateNotificationWidgetState extends State<UpdateNotificationWidget> {
         print('UpdateNotification: Iniciando descarga real');
         final url = _availableUpdate!['url'] as String;
         
-        // Usar DesktopUpdater para descargar e instalar
-        try {
-          // Simular progreso de descarga real
-          for (int i = 0; i <= 100; i += 2) {
-            if (!mounted) break;
-            await Future.delayed(const Duration(milliseconds: 50));
-            setState(() {
-              _downloadProgress = i / 100.0;
-            });
-          }
-
-          // Aquí se integraría con desktop_updater real
-          // Por ahora simulamos el éxito
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Actualización descargada. La aplicación se reiniciará...'),
-                backgroundColor: Colors.green,
-                duration: Duration(seconds: 3),
-              ),
-            );
+        // Descargar el archivo de actualización
+        final downloadedFile = await _downloadUpdateFile(url);
+        
+        if (downloadedFile != null && mounted) {
+          print('UpdateNotification: Archivo descargado: ${downloadedFile.path}');
+          
+          // Usar DesktopUpdater para instalar y reiniciar
+          try {
+            // Configurar DesktopUpdater
+            await DesktopUpdater.setAppcastURL(_availableUpdate!['url']);
+            await DesktopUpdater.setFeedURL(_availableUpdate!['url']);
             
-            // Ocultar notificación
-            setState(() {
-              _isVisible = false;
-            });
+            // Instalar la actualización
+            final success = await DesktopUpdater.installUpdate(downloadedFile.path);
             
-            // TODO: Integrar con desktop_updater real cuando esté disponible
-            // await DesktopUpdater.installAndRestart();
+            if (success && mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Actualización instalada. La aplicación se reiniciará...'),
+                  backgroundColor: Colors.green,
+                  duration: Duration(seconds: 3),
+                ),
+              );
+              
+              // Ocultar notificación
+              setState(() {
+                _isVisible = false;
+              });
+              
+              // Esperar un momento y reiniciar
+              await Future.delayed(const Duration(seconds: 2));
+              await DesktopUpdater.restartApp();
+            } else {
+              throw Exception('No se pudo instalar la actualización');
+            }
+          } catch (e) {
+            print('UpdateNotification: Error con DesktopUpdater: $e');
+            // Fallback: intentar instalación manual
+            await _performManualUpdate(downloadedFile);
           }
-        } catch (e) {
-          print('UpdateNotification: Error en desktop_updater: $e');
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Error al actualizar: ${e.toString()}'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
+        } else {
+          throw Exception('No se pudo descargar el archivo de actualización');
         }
       }
     } catch (e) {
@@ -126,6 +133,115 @@ class _UpdateNotificationWidgetState extends State<UpdateNotificationWidget> {
           _downloadProgress = 0.0;
         });
       }
+    }
+  }
+
+  /// Descarga el archivo de actualización
+  Future<File?> _downloadUpdateFile(String url) async {
+    try {
+      print('UpdateNotification: Descargando desde: $url');
+      
+      // Obtener directorio temporal
+      final tempDir = await getTemporaryDirectory();
+      final fileName = path.basename(Uri.parse(url).path);
+      final filePath = path.join(tempDir.path, fileName);
+      final file = File(filePath);
+      
+      // Realizar la descarga con progreso
+      final request = http.Request('GET', Uri.parse(url));
+      final response = await request.send();
+      
+      if (response.statusCode == 200) {
+        final contentLength = response.contentLength ?? 0;
+        var downloadedBytes = 0;
+        
+        final sink = file.openWrite();
+        
+        await for (final chunk in response.stream) {
+          sink.add(chunk);
+          downloadedBytes += chunk.length;
+          
+          if (contentLength > 0 && mounted) {
+            setState(() {
+              _downloadProgress = downloadedBytes / contentLength;
+            });
+          }
+        }
+        
+        await sink.close();
+        print('UpdateNotification: Descarga completada: ${file.path}');
+        return file;
+      } else {
+        throw Exception('Error HTTP: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('UpdateNotification: Error al descargar archivo: $e');
+      return null;
+    }
+  }
+
+  /// Realiza una actualización manual como fallback
+  Future<void> _performManualUpdate(File updateFile) async {
+    try {
+      print('UpdateNotification: Intentando actualización manual');
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Actualización descargada. Por favor, instala manualmente y reinicia la aplicación.'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 5),
+          ),
+        );
+        
+        // Mostrar diálogo con instrucciones
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Actualización Descargada'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('La actualización se ha descargado correctamente.'),
+                const SizedBox(height: 8),
+                const Text('Ubicación del archivo:'),
+                const SizedBox(height: 4),
+                SelectableText(
+                  updateFile.path,
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                ),
+                const SizedBox(height: 8),
+                const Text('Por favor, cierra la aplicación e instala la actualización manualmente.'),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  setState(() {
+                    _isVisible = false;
+                  });
+                },
+                child: const Text('Cerrar'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  setState(() {
+                    _isVisible = false;
+                  });
+                  // Cerrar la aplicación
+                  exit(0);
+                },
+                child: const Text('Cerrar Aplicación'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      print('UpdateNotification: Error en actualización manual: $e');
     }
   }
 

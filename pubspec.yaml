@@ -1,4 +1,4 @@
-﻿name: men_barberia
+name: men_barberia
 description: Aplicación de gestión para barbería
 version: 1.0.6
 
@@ -39,6 +39,7 @@ dependencies:
   # Auto Updates
   desktop_updater: ^1.4.0
   package_info_plus: ^4.2.0
+  http: ^1.1.0
 
   # Icons
   flutter_launcher_icons: ^0.13.1
