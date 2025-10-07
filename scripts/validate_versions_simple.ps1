@@ -9,9 +9,10 @@ Write-Host "Validando versiones..." -ForegroundColor Green
 try {
     # Leer pubspec.yaml
     $pubspecContent = Get-Content "pubspec.yaml" -Raw
-    $pubspecMatch = [regex]::Match($pubspecContent, 'version:\s*([0-9]+\.[0-9]+\.[0-9]+)\+([0-9]+)')
+    # Buscar versión con o sin build number
+    $pubspecMatch = [regex]::Match($pubspecContent, 'version:\s*([0-9]+\.[0-9]+\.[0-9]+)(?:\+([0-9]+))?')
     $pubspecVersion = $pubspecMatch.Groups[1].Value
-    $pubspecBuild = $pubspecMatch.Groups[2].Value
+    $pubspecBuild = if ($pubspecMatch.Groups[2].Value) { $pubspecMatch.Groups[2].Value } else { "1" }
 
     # Leer app-archive.json
     $archiveContent = Get-Content "app-archive.json" -Raw | ConvertFrom-Json

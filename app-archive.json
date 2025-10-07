@@ -1,22 +1,22 @@
 ﻿{
-  "appName": "Men BarberÃ­a",
-  "description": "AplicaciÃ³n de gestiÃ³n para barberÃ­a",
+  "appName": "Men Barbería",
+  "description": "Aplicación de gestión para barbería",
   "items": [
     {
-      "version": "1.0.5",
-      "shortVersion": 1,
+      "version": "1.0.6",
+      "shortVersion": 2,
       "changes": [
         {
           "type": "feat",
-          "message": "Sistema de actualizaciones automÃ¡ticas implementado"
+          "message": "Sistema de actualizaciones automáticas implementado"
         },
         {
           "type": "feat",
-          "message": "Notificaciones de actualizaciÃ³n en tiempo real"
+          "message": "Notificaciones de actualización en tiempo real"
         },
         {
           "type": "fix",
-          "message": "CorrecciÃ³n de errores de compilaciÃ³n"
+          "message": "Corrección de errores de compilación"
         },
         {
           "type": "chore",
@@ -25,16 +25,16 @@
       ],
       "date": "2025-10-07",
       "mandatory": false,
-      "url": "https://github.com/juancecian/MenBarberiaApp/releases/download/1.0.5/men_barberia_v1.0.5_windows.zip",
+      "url": "https://github.com/juancecian/MenBarberiaApp/releases/download/1.0.6/men_barberia_v1.0.6_windows.zip",
       "platform": "windows"
     },
     {
-      "version": "1.0.5",
-      "shortVersion": 1,
+      "version": "1.0.6",
+      "shortVersion": 2,
       "changes": [
         {
           "type": "feat",
-          "message": "Sistema de actualizaciones automÃ¡ticas"
+          "message": "Sistema de actualizaciones automáticas"
         },
         {
           "type": "chore",
@@ -42,21 +42,21 @@
         },
         {
           "type": "fix",
-          "message": "CorrecciÃ³n de errores menores"
+          "message": "Corrección de errores menores"
         }
       ],
       "date": "2025-10-07",
       "mandatory": false,
-      "url": "https://github.com/juancecian/MenBarberiaApp/releases/download/1.0.5/men_barberia_v1.0.5_macos.dmg",
+      "url": "https://github.com/juancecian/MenBarberiaApp/releases/download/1.0.6/men_barberia_v1.0.6_macos.dmg",
       "platform": "macos"
     },
     {
-      "version": "1.0.5",
-      "shortVersion": 1,
+      "version": "1.0.6",
+      "shortVersion": 2,
       "changes": [
         {
           "type": "feat",
-          "message": "Sistema de actualizaciones automÃ¡ticas"
+          "message": "Sistema de actualizaciones automáticas"
         },
         {
           "type": "chore",
@@ -64,12 +64,12 @@
         },
         {
           "type": "fix",
-          "message": "CorrecciÃ³n de errores menores"
+          "message": "Corrección de errores menores"
         }
       ],
       "date": "2025-10-07",
       "mandatory": false,
-      "url": "https://github.com/juancecian/MenBarberiaApp/releases/download/1.0.5/men_barberia_v1.0.5_linux.tar.gz",
+      "url": "https://github.com/juancecian/MenBarberiaApp/releases/download/1.0.6/men_barberia_v1.0.6_linux.tar.gz",
       "platform": "linux"
     }
   ]

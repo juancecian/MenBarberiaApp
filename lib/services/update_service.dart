@@ -149,8 +149,8 @@ class UpdateService {
       return packageInfo.version;
     } catch (e) {
       print('UpdateService: Error al obtener versión: $e');
-      // Fallback final
-      return '1.0.1';
+      // Fallback final - usar versión actual del pubspec
+      return '1.0.5';
     }
   }
 
@@ -165,7 +165,7 @@ class UpdateService {
       if (kDebugMode) {
         print('UpdateService: Error al obtener versión del build: $e');
       }
-      return '1.0.1';
+      return '1.0.5';
     }
   }
 
