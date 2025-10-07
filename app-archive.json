@@ -3,8 +3,8 @@
   "description": "Aplicación de gestión para barbería",
   "items": [
     {
-      "version": "1.0.1",
-      "shortVersion": 2,
+      "version": "1.0.4",
+      "shortVersion": 1,
       "changes": [
         {
           "type": "feat",
@@ -23,14 +23,14 @@
           "message": "Mejoras de rendimiento y estabilidad"
         }
       ],
-      "date": "2024-12-19",
+      "date": "2025-10-06",
       "mandatory": false,
-      "url": "https://github.com/juancecian/MenBarberiaApp/releases/download/v1.0.1/men_barberia_v1.0.1_windows.zip",
+      "url": "https://github.com/juancecian/MenBarberiaApp/releases/download/1.0.4/men_barberia_v1.0.4_windows.zip",
       "platform": "windows"
     },
     {
-      "version": "1.0.1",
-      "shortVersion": 2,
+      "version": "1.0.4",
+      "shortVersion": 1,
       "changes": [
         {
           "type": "feat",
@@ -45,14 +45,14 @@
           "message": "Corrección de errores menores"
         }
       ],
-      "date": "2024-12-19",
+      "date": "2025-10-06",
       "mandatory": false,
-      "url": "https://github.com/juancecian/MenBarberiaApp/releases/download/v1.0.1/men_barberia_v1.0.1_macos.dmg",
+      "url": "https://github.com/juancecian/MenBarberiaApp/releases/download/1.0.4/men_barberia_v1.0.4_macos.dmg",
       "platform": "macos"
     },
     {
-      "version": "1.0.1",
-      "shortVersion": 2,
+      "version": "1.0.4",
+      "shortVersion": 1,
       "changes": [
         {
           "type": "feat",
@@ -67,9 +67,9 @@
           "message": "Corrección de errores menores"
         }
       ],
-      "date": "2024-12-19",
+      "date": "2025-10-06",
       "mandatory": false,
-      "url": "https://github.com/juancecian/MenBarberiaApp/releases/download/v1.0.1/men_barberia_v1.0.1_linux.tar.gz",
+      "url": "https://github.com/juancecian/MenBarberiaApp/releases/download/1.0.4/men_barberia_v1.0.4_linux.tar.gz",
       "platform": "linux"
     }
   ]
