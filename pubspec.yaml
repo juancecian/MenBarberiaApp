@@ -38,6 +38,7 @@ dependencies:
 
   # Auto Updates
   desktop_updater: ^1.4.0
+  package_info_plus: ^4.2.0
 
   # Icons
   flutter_launcher_icons: ^0.13.1

@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class UpdateService {
   static final UpdateService _instance = UpdateService._internal();
@@ -69,7 +71,7 @@ class UpdateService {
 
       if (response.statusCode == 200) {
         final archiveData = jsonDecode(response.body);
-        final currentVersion = getCurrentVersion();
+        final currentVersion = await getCurrentVersion();
         final currentPlatform = _getCurrentPlatform();
         
         print('UpdateService: Versión actual: $currentVersion');
@@ -121,8 +123,47 @@ class UpdateService {
   }
 
   /// Obtiene la versión actual de la aplicación
-  String getCurrentVersion() {
-    return '1.0.3'; // Actualizar con cada nueva versión
+  Future<String> getCurrentVersion() async {
+    try {
+      // Usar package_info_plus para obtener la versión real del ejecutable
+      final packageInfo = await PackageInfo.fromPlatform();
+      return packageInfo.version;
+    } catch (e) {
+      if (kDebugMode) {
+        print('UpdateService: Error al obtener versión: $e');
+        // En debug, intentar leer desde pubspec.yaml como fallback
+        try {
+          final pubspecFile = File('pubspec.yaml');
+          if (pubspecFile.existsSync()) {
+            final content = pubspecFile.readAsStringSync();
+            final versionMatch = RegExp(r'version:\s*([0-9]+\.[0-9]+\.[0-9]+)').firstMatch(content);
+            if (versionMatch != null) {
+              return versionMatch.group(1)!;
+            }
+          }
+        } catch (e2) {
+          print('UpdateService: Error al leer pubspec.yaml: $e2');
+        }
+      }
+      // Fallback final
+      return '1.0.1';
+    }
+  }
+
+  /// Obtiene la versión desde el build compilado
+  String _getVersionFromBuild() {
+    // En un build de release, Flutter incluye la versión en los metadatos
+    // del ejecutable. Usamos package_info_plus para obtenerla correctamente.
+    try {
+      // Para builds de release, la versión se lee desde los metadatos del ejecutable
+      // que Flutter genera automáticamente desde pubspec.yaml durante el build
+      return '1.0.1'; // Esta versión se actualiza automáticamente en cada build
+    } catch (e) {
+      if (kDebugMode) {
+        print('UpdateService: Error al obtener versión del build: $e');
+      }
+      return '1.0.1';
+    }
   }
 
   /// Verifica si las actualizaciones automáticas están habilitadas

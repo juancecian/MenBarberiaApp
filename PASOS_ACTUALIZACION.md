@@ -4,19 +4,33 @@
 
 ### **PASO 1: Preparar la Nueva Versión**
 
+#### **Método Automático (Recomendado):**
+```powershell
+# Actualizar a la nueva versión automáticamente
+.\scripts\update_version.ps1 1.0.2 3
+
+# Verificar consistencia antes de publicar
+.\scripts\validate_versions.ps1
+```
+
+#### **Método Manual:**
 1. **Incrementar versión en `pubspec.yaml`:**
    ```yaml
-   version: 1.0.1+2  # Formato: MAJOR.MINOR.PATCH+BUILD_NUMBER
+   version: 1.0.2+3  # Formato: MAJOR.MINOR.PATCH+BUILD_NUMBER
    ```
 
-2. **Actualizar versión en `update_service.dart`:**
-   ```dart
-   String getCurrentVersion() {
-     return '1.0.1'; // Debe coincidir con pubspec.yaml
-   }
-   ```
+2. **Actualizar `app-archive.json`:**
+   - Cambiar `version` a la nueva versión
+   - Actualizar `shortVersion` al build number
+   - Corregir URLs para que apunten a la nueva versión
+   - Actualizar fecha
 
-3. **Documentar cambios** (opcional pero recomendado):
+3. **Verificar `update_service.dart`:**
+   - Ya no necesita actualización manual (lee automáticamente desde pubspec.yaml)
+   - En modo debug, lee la versión del archivo pubspec.yaml
+   - En release, usa la versión compilada
+
+4. **Documentar cambios** (opcional pero recomendado):
    - Crear entrada en CHANGELOG.md
    - Documentar nuevas características y correcciones
 
@@ -82,14 +96,18 @@ flutter pub get
 
 ### **PASO 4: Actualizar app-archive.json**
 
+**Si usaste el método automático en PASO 1, este archivo ya está actualizado.**
+
+**Si usaste el método manual, actualizar manualmente:**
+
 ```json
 {
   "appName": "Men Barbería",
   "description": "Aplicación de gestión para barbería",
   "items": [
     {
-      "version": "1.0.1",
-      "shortVersion": 2,
+      "version": "1.0.2",
+      "shortVersion": 3,
       "changes": [
         {
           "type": "feat",
@@ -100,15 +118,17 @@ flutter pub get
           "message": "Corrección de errores menores"
         }
       ],
-      "date": "2024-10-06",
+      "date": "2024-12-19",
       "mandatory": false,
-      "url": "https://github.com/juancecian/MenBarberiaApp/releases/download/v1.0.1/men_barberia_v1.0.1_windows.zip",
+      "url": "https://github.com/juancecian/MenBarberiaApp/releases/download/v1.0.2/men_barberia_v1.0.2_windows.zip",
       "platform": "windows"
     }
     // ... repetir para macOS y Linux
   ]
 }
 ```
+
+**⚠️ IMPORTANTE:** Las URLs deben contener la versión correcta en el path.
 
 ### **PASO 5: Subir app-archive.json a GitHub**
 
@@ -165,9 +185,25 @@ Reinicia app con v1.0.1
 
 ## ⚡ Comandos Rápidos
 
-```bash
-# Proceso completo automatizado
-./scripts/release_update.sh 1.0.1 "Sistema de actualizaciones automáticas"
+### **Actualización de Versiones:**
+```powershell
+# Actualizar versión automáticamente
+.\scripts\update_version.ps1 1.0.2 3
+
+# Verificar consistencia
+.\scripts\validate_versions.ps1
+
+# Proceso completo automatizado (si existe)
+.\scripts\release_update.sh 1.0.2 "Sistema de actualizaciones automáticas"
+```
+
+### **Validación Pre-Release:**
+```powershell
+# Validar todas las versiones
+.\scripts\validate_versions.ps1
+
+# Ver qué se cambiaría sin aplicar cambios
+.\scripts\update_version.ps1 1.0.2 3 -DryRun
 ```
 
 ## 🔒 Consideraciones de Seguridad
