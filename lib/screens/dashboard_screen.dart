@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -28,13 +29,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Timer? _hideTimer;
 
   @override
-  void initState() {
+  void initState() async {
     super.initState();
     // Cargar todos los servicios al iniciar y aplicar filtro por defecto (hoy)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = Provider.of<ServicioProvider>(context, listen: false);
       provider.loadServicios(); // Esto cargará todos y aplicará el filtro actual
       
+        const feedURL = 'https://raw.githubusercontent.com/juancecian/MenBarberiaApp/refs/heads/main/dist/appcast.xml';
+        autoUpdater.setFeedURL(feedURL);
+        autoUpdater.checkForUpdates();
+        autoUpdater.setScheduledCheckInterval(3600);
+  
       // Verificar actualizaciones automáticamente si está habilitado
       // final updateService = UpdateService();
       // if (updateService.isAutoUpdateEnabled()) {

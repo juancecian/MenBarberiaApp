@@ -28,12 +28,6 @@ void main() async {
     print('❌ No se pudo conectar a Supabase');
   }
 
-
-  String feedURL = 'http://localhost:5002/appcast.xml';
-  await autoUpdater.setFeedURL(feedURL);
-  await autoUpdater.checkForUpdates();
-  await autoUpdater.setScheduledCheckInterval(3600);
-  
   // Lanzar la aplicación
   runApp(MenBarberiaApp(supabaseService: supabaseService));
 }

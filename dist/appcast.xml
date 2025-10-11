@@ -1,16 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
     <channel>
-        <title>auto_updater_example</title>
-        <description>Most recent updates to auto_updater_example</description>
-        <language>en</language>
+        <title>Men Barbería</title>
+        <description>Actualizaciones de la aplicación Men Barbería</description>
+        <language>es</language>
 
         <item>
             <title>Version 1.0.6</title>
             <sparkle:releaseNotesLink>
-                https://your_domain/your_path/release_notes.html
+            ### Cambios en esta versión
+
+                - **[NUEVO]** Mostrar/ocultar ingresos en el dashboard.
+                - **[MEJORA]** Reducción de tiempos de carga al abrir el historial.
+                - **[MEJORA]** Actualizaciones automáticas.
+                - **[MEJORA]** Actualizacion de la interfaz de usuario en historial.
+                - **[CORRECCIÓN]** Solucionado error al guardar servicios duplicados.
+                - **[OTROS]** Mejoras de rendimiento y estabilidad.
             </sparkle:releaseNotesLink>
-            <pubDate>Sun, 16 Feb 2022 12:00:00 +0800</pubDate>
+            <pubDate>Sun, 11 Oct 2025 12:00:00 +0800</pubDate>
             <enclosure url="https://github.com/juancecian/MenBarberiaApp/releases/download/1.0.6/men_barberia-1.0.5-windows-setup.exe"
                        sparkle:dsaSignature="MEUCIQCVbVzVID7H3aUzAY5znpi+ySZKznkukV8whlMFzKh66AIgREUGOmvavlcg6hwAwkb2o4IqVE/D56ipIBshIqCH8rk="
                        sparkle:version="1.0.6"
