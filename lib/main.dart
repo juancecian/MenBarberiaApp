@@ -10,6 +10,7 @@ import 'providers/cliente_provider.dart';
 import 'providers/navigation_provider.dart';
 import 'providers/sync_provider.dart';
 import 'screens/splash_screen.dart';
+import 'package:auto_updater/auto_updater.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,10 +27,12 @@ void main() async {
   } else {
     print('❌ No se pudo conectar a Supabase');
   }
-  
-  // Inicializar servicio de actualizaciones
-  final updateService = UpdateService();
-  await updateService.initialize();
+
+
+  String feedURL = 'http://localhost:5002/appcast.xml';
+  await autoUpdater.setFeedURL(feedURL);
+  await autoUpdater.checkForUpdates();
+  await autoUpdater.setScheduledCheckInterval(3600);
   
   // Lanzar la aplicación
   runApp(MenBarberiaApp(supabaseService: supabaseService));

@@ -12,7 +12,6 @@ import '../widgets/add_servicio_modal.dart';
 import '../widgets/sync_status_widget.dart';
 import '../widgets/date_filter_widget.dart';
 import '../widgets/desktop_button.dart';
-import '../widgets/update_notification_widget.dart';
 import '../services/update_service.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -38,10 +37,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       provider.loadServicios(); // Esto cargará todos y aplicará el filtro actual
       
       // Verificar actualizaciones automáticamente si está habilitado
-      final updateService = UpdateService();
-      if (updateService.isAutoUpdateEnabled()) {
-        updateService.checkForUpdatesOnStartup();
-      }
+      // final updateService = UpdateService();
+      // if (updateService.isAutoUpdateEnabled()) {
+      //   updateService.checkForUpdatesOnStartup();
+      // }
     });
   }
 

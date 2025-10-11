@@ -1,6 +1,6 @@
 name: men_barberia
 description: Aplicación de gestión para barbería
-version: 1.0.6
+version: 1.0.5
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -37,7 +37,7 @@ dependencies:
   screen_retriever: ^0.1.9
 
   # Auto Updates
-  desktop_updater: ^1.4.0
+  auto_updater: ^1.0.0
   package_info_plus: ^4.2.0
   http: ^1.1.0
 
@@ -48,6 +48,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  msix: ^3.16.12
 
 flutter:
   uses-material-design: true
@@ -64,4 +65,13 @@ flutter_icons:
     image_path: "assets/icons/logo.png"
     icon_size: 48
 
-
+msix_config:
+  display_name: Men Barbería
+  publisher_display_name: Men Barbería
+  identity_name: com.menbarberia.app
+  msix_version: 1.0.0.0
+  logo_path: assets/icons/logo.png
+  start_menu_icon_path: assets/icons/logo.png
+  tile_icon_path: assets/icons/logo.png
+  vs_generated_images_folder_path: windows/runner/resources
+  capabilities: internetClient

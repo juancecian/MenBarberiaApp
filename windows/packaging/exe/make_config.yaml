@@ -1,0 +1,14 @@
+# The value of AppId uniquely identifies this application.
+# Do not use the same AppId value in installers for other applications.
+app_id: com.menbarberia.app
+publisher: MenBarberia
+publisher_url: https://github.com/juancecian/MenBarberiaApp
+display_name: MenBarberia
+create_desktop_icon: true
+# See: https://jrsoftware.org/ishelp/index.php?topic=setup_defaultdirname
+install_dir_name: "C:\\MenBarberia"
+# This path is relative to the root directory of your project; The format of icon file must be ico, can not be png or others
+setup_icon_file: windows\runner\resources\app_icon.ico
+locales:
+  - es
+script_template: inno_setup.iss

@@ -4,7 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   app_links
-  desktop_updater
+  auto_updater_windows
   screen_retriever
   url_launcher_windows
   window_manager
