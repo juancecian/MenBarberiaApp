@@ -12,7 +12,6 @@ import '../widgets/add_servicio_modal.dart';
 import '../widgets/sync_status_widget.dart';
 import '../widgets/date_filter_widget.dart';
 import '../widgets/desktop_button.dart';
-import '../services/update_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -72,13 +71,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
             ],
-          ),
-          // Widget de notificación de actualización
-          const Positioned(
-            top: 80,
-            right: 0,
-            left: 0,
-            child: UpdateNotificationWidget(),
           ),
         ],
       ),
